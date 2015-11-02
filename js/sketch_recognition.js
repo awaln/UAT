@@ -40,7 +40,8 @@
     ref3 = Object.keys(drawing.nodes);
     for (p = 0, len2 = ref3.length; p < len2; p++) {
       node = ref3[p];
-      if (drawing.nodes[node].type.circle >= drawing.nodes[node].type.polygon) {
+      if (drawing.nodes[node].type.circle >= drawing.nodes[node].type.polygon ||
+            drawing.nodes[node].corners.length < 3) {
         ctx.beginPath();
         ctx.arc(drawing.nodes[node].center_x, drawing.nodes[node].center_y, 
           drawing.nodes[node].radius, 0, 2 * Math.PI);
