@@ -138,12 +138,12 @@
     times = []
     drawing = relate(drawing);
     pretty_draw(ctx, canvas, drawing);
-    ask_user();
+    ask_user_nodes();
   };
 
   CONFIDENCE_THRESHOLD = .81;
 
-  ask_user = function() {
+  ask_user_nodes = function() {
     var answers, guess, j, len, node, ref, x_point, y_point;
     ref = Object.keys(drawing.nodes);
     for (j = 0, len = ref.length; j < len; j++) {
@@ -192,11 +192,13 @@
       if (!drawing.nodes[node].known) {
         drawing.nodes[node].type[DRAWABLE_SHAPES[int]] = 1;
         drawing.nodes[node].known = true;
+        console.log(drawing.nodes[node]);
+        pretty_draw(ctx, canvas, drawing);
+        return ask_user_nodes();
       }
-      console.log(drawing.nodes[node]);
     }
     pretty_draw(ctx, canvas, drawing);
-    return ask_user();
+    return ask_user_nodes();
   };
 
 }).call(this);
