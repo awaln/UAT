@@ -5,7 +5,9 @@
  */
 
 (function() {
-  var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+  var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length;
+                                                    i < l; i++) { if (i in this
+      && this[i] === item) return i; } return -1; };
 
   this.relate = function(drawing) {
     var i, j, k, l, len, len1, len2, loner, name, node, ref, ref1, ref2, relations, s, t;
@@ -20,10 +22,12 @@
       for (j = 0, len = ref.length; j < len; j++) {
         name = ref[j];
         node = drawing.nodes[name];
-        if (distance_formula(node.center_x, node.center_y, loner['start'][0], loner['start'][1]) < node.radius) {
+        if (distance_formula(node.center_x, node.center_y, loner['start'][0],
+            loner['start'][1]) < node.radius) {
           relations['start'].push(node.name);
         }
-        if (distance_formula(node.center_x, node.center_y, loner['end'][0], loner['end'][1]) < node.radius) {
+        if (distance_formula(node.center_x, node.center_y, loner['end'][0],
+            loner['end'][1]) < node.radius) {
           relations['end'].push(node.name);
         }
       }
@@ -43,7 +47,8 @@
               if (loner.type === "arrow") {
                 drawing.arrows.push(s + " " + t);
               }
-              drawing.edgelabels[s + " " + t] = "Edge " + Object.keys(drawing.edgelabels).length;
+              drawing.edgelabels[s + " " + t] = "Edge " +
+                Object.keys(drawing.edgelabels).length;
             }
           }
         }
@@ -53,6 +58,8 @@
     }
     return drawing;
   };
+
+  this.
 
   this.convert = function(compile_to, drawing) {
     var arrow_path, code, e, headers, i, j, k, l, len, len1, len2, len3, len4, len5, loner, m, n, name, node, o, ref, ref1, ref2, ref3, ref4, ref5, ref6, relations, s, t;

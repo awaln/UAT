@@ -143,6 +143,10 @@
 
   CONFIDENCE_THRESHOLD = .81;
 
+  ask_user = function() {
+    ask_user_nodes();
+  }
+
   ask_user_nodes = function() {
     var answers, guess, j, len, node, ref, x_point, y_point;
     ref = Object.keys(drawing.nodes);
@@ -167,13 +171,13 @@
             drawing.nodes[node].type["polygon"]) {
           guess = "<p>I'm not sure what you've drawn here. My best guess is a \
                   circle. Is that right?</p>";
-          answers = "<button onclick='answer(0)'>yes</button><button onclick='a\
-                    nswer(1)'>no</button>";
+          answers = "<button onclick='answer_nodes(0)'>yes</button><button \
+                    onclick='answer_nodes(1)'>no</button>";
         } else {
           guess = "<p>I'm not sure what you've drawn here. My best guess is a \
                   polygon. Is that right?</p>";
-          answers = "<button onclick='answer(1)'>yes</button><button \
-                    onclick='answer(0)'>no</button>";
+          answers = "<button onclick='answer_nodes(1)'>yes</button><button \
+                    onclick='answer_nodes(0)'>no</button>";
         }
         document.getElementById("askbox").innerHTML = guess + answers;
         return;
@@ -184,7 +188,7 @@
 
   DRAWABLE_SHAPES = ["circle", "polygon"];
 
-  this.answer = function(int) {
+  this.answer_nodes = function(int) {
     var j, len, node, ref;
     ref = Object.keys(drawing.nodes);
     for (j = 0, len = ref.length; j < len; j++) {
@@ -194,11 +198,11 @@
         drawing.nodes[node].known = true;
         console.log(drawing.nodes[node]);
         pretty_draw(ctx, canvas, drawing);
-        return ask_user_nodes();
+        return ask_user();
       }
     }
     pretty_draw(ctx, canvas, drawing);
-    return ask_user_nodes();
+    return ask_user();
   };
 
 }).call(this);

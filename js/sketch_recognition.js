@@ -88,7 +88,7 @@
     sketch_size = current_stroke_x.length;
     closed = false;
     corners = count_corners(current_stroke_x, current_stroke_y, current_times);
-    console.log("Corners: " + corners);
+
     total_stroke_length = 0;
     for (i = m = 1, ref = sketch_size; 1 <= ref ? m < ref : m > ref; i = 1 <= 
         ref ? ++m : --m) {
@@ -143,7 +143,10 @@
       };
       drawing.nodelabels[node_name_count] = "Node " + node_name_count;
       node_name_count++;
-    } else {
+    }
+
+    // not a corner
+    else {
       if (corners) {
         drawing['loners'].push({
           name: 'Loner ' + loner_name_count,
