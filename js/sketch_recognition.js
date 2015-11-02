@@ -47,7 +47,9 @@
         ctx.fill();
         ctx.stroke();
         ctx.closePath();
-      } else {
+      }
+      else{
+        // regular polygon.
         ctx.beginPath();
         ctx.moveTo(drawing.nodes[node].corners[0].x, 
           drawing.nodes[node].corners[0].y);
@@ -248,9 +250,9 @@
     STRAIGHTNESS = 1;
     SEPARATION = .1 * total_stroke_length;
     CURVATURE_THRESHOLD = .06;
-    SPEED_THRESHOLD = .25 * (total_stroke_length / (times[times.length - 1] - 
+    SPEED_THRESHOLD = .45 * (total_stroke_length / (times[times.length - 1] -
       times[0]));
-    SPEED_THRESHOLD_2 = .8 * (total_stroke_length / (times[times.length - 1] - 
+    SPEED_THRESHOLD_2 = .9 * (total_stroke_length / (times[times.length - 1] -
       times[0]));
     for (l = r = 1, ref3 = number_of_points - 1; 1 <= ref3 ? r < ref3 : r > 
         ref3; l = 1 <= ref3 ? ++r : --r) {
