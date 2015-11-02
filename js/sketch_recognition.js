@@ -130,8 +130,8 @@
         i++;
       }
       radius = distance / sketch_size;
-      if (corners.length > 3) {
-        corner_guess["polygon"] = .8;
+      if (corners.length > 2) {
+        corner_guess["polygon"] = .7;
       } else {
         corner_guess["polygon"] = 0;
       }
