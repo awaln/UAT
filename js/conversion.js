@@ -59,8 +59,6 @@
     return drawing;
   };
 
-  this.
-
   this.convert = function(compile_to, drawing) {
     var arrow_path, code, e, headers, i, j, k, l, len, len1, len2, len3, len4, len5, loner, m, n, name, node, o, ref, ref1, ref2, ref3, ref4, ref5, ref6, relations, s, t;
     if (convert_to === 'LaTeX') {
