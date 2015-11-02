@@ -170,12 +170,16 @@
         if (drawing.nodes[node].type["circle"] >=
             drawing.nodes[node].type["polygon"]) {
           guess = "<p>I'm not sure what you've drawn here. My best guess is a \
-                  circle. Is that right?</p>";
+                  circle. Is that right? (" +
+                  drawing.nodes[node].type["circle"] + ", " +
+                  drawing.nodes[node].type["polygon"] + ")</p>";
           answers = "<button onclick='answer_nodes(0)'>yes</button><button \
                     onclick='answer_nodes(1)'>no</button>";
         } else {
           guess = "<p>I'm not sure what you've drawn here. My best guess is a \
-                  polygon. Is that right?</p>";
+                  polygon. Is that right? (" +
+                  drawing.nodes[node].type["circle"] + ", " +
+                  drawing.nodes[node].type["polygon"] + ")</p>";
           answers = "<button onclick='answer_nodes(1)'>yes</button><button \
                     onclick='answer_nodes(0)'>no</button>";
         }
