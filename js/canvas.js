@@ -167,7 +167,7 @@
         ctx.fill();
         ctx.fillStyle = 'white';
         ctx.stroke();
-        if (drawing.nodes[node].type["circle"] > 
+        if (drawing.nodes[node].type["circle"] >=
             drawing.nodes[node].type["polygon"]) {
           guess = "<p>I'm not sure what you've drawn here. My best guess is a \
                   circle. Is that right?</p>";
