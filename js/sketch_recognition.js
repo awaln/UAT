@@ -251,7 +251,7 @@
     STRAIGHTNESS = 1;
     SEPARATION = .1 * total_stroke_length;
     CURVATURE_THRESHOLD = .06;
-    SPEED_THRESHOLD = .45 * (total_stroke_length / (times[times.length - 1] -
+    SPEED_THRESHOLD = .6 * (total_stroke_length / (times[times.length - 1] -
       times[0]));
     SPEED_THRESHOLD_2 = .9 * (total_stroke_length / (times[times.length - 1] -
       times[0]));
