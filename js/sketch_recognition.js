@@ -10,7 +10,7 @@
   PRETTY_DRAW_COLOR = 'black';
   PRETTY_DRAW_SIZE = 2;
   COMPILE_TO = 'LaTeX';
-  CLOSED_THRESHOLD = .05;
+  CLOSED_THRESHOLD = .1;
 
   this.pretty_draw = function(ctx, canvas, drawing) {
     var corner, end, len, len1, len2, len3, len4, loner, m, midpoint, node, o, 
