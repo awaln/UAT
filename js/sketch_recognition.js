@@ -108,7 +108,7 @@
     }
     if (closed) {
       corner_guess = {
-        "circle": 1 * corners.length
+        "circle": 0
       };
       circle_sum = 0;
       for (i = o = 0, ref1 = corners.length; 0 <= ref1 ? o < ref1 : o > ref1; 
@@ -116,6 +116,10 @@
         circle_sum += corners[i].r;
       }
       corner_guess["circle"] = 1 - (circle_sum / corners.length);
+      // TODO: figure out real problem
+      if(corner_guess["circle"] == NaN){
+        corner_guess["circle"] = 0;
+      }
       average_x = current_stroke_x.reduce(function(total, num) {
         return total + num;
       }) / sketch_size;
