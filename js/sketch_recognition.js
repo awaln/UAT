@@ -39,32 +39,8 @@
     }
     ref3 = Object.keys(drawing.nodes);
     for (p = 0, len2 = ref3.length; p < len2; p++) {
-      node = ref3[p];
-      if (drawing.nodes[node].type.circle >= drawing.nodes[node].type.polygon ||
-            drawing.nodes[node].corners.length < 3) {
-        ctx.beginPath();
-        ctx.arc(drawing.nodes[node].center_x, drawing.nodes[node].center_y, 
-          drawing.nodes[node].radius, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.stroke();
-        ctx.closePath();
-      }
-      else{
-        // regular polygon.
-        ctx.beginPath();
-        ctx.moveTo(drawing.nodes[node].corners[0].x, 
-          drawing.nodes[node].corners[0].y);
-        ref4 = drawing.nodes[node].corners;
-        for (r = 0, len3 = ref4.length; r < len3; r++) {
-          corner = ref4[r];
-          ctx.lineTo(corner.x, corner.y);
-        }
-        ctx.lineTo(drawing.nodes[node].corners[0].x, 
-          drawing.nodes[node].corners[0].y);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-      }
+      node = drawing.nodes[ref3[p]];
+      draw_node(ctx, node, 'black');
     }
     ref5 = drawing.loners;
     for (s = 0, len4 = ref5.length; s < len4; s++) {
@@ -77,6 +53,121 @@
       ctx.strokeStyle = "black";
       ctx.closePath();
     }
+  };
+
+  this.draw_node = function(ctx, node, color){
+    ctx.strokeStyle = color;
+    if (node.type.circle >= node.type.polygon ||
+      node.corners.length < 3) {
+      ctx.beginPath();
+      ctx.arc(node.center_x, node.center_y,
+        node.radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      ctx.closePath();
+    }
+    else{
+      // regular polygon.
+      ctx.beginPath();
+      ctx.moveTo(node.corners[0].x,
+        node.corners[0].y);
+      ref4 = node.corners;
+      for (r = 0, len3 = ref4.length; r < len3; r++) {
+        corner = ref4[r];
+        ctx.lineTo(corner.x, corner.y);
+      }
+      ctx.lineTo(node.corners[0].x,
+        node.corners[0].y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'black';
+  }
+
+  this.point_within_node = function(node, x, y){
+    if(node.type.circle >= node.type.polygon){
+      if(this.distance_formula(node.center_x, node.center_y, x, y) <=
+          node.radius){
+        return true;
+      }
+    }
+    else{
+      // does a ray straight right from x, y intersect polygon odd number times?
+      var p1 = {'x':x, 'y':y};
+      var q1 = {'x':2000, 'y':y};
+      for(var i = 0; i < node.corners.length - 1; i++){
+        if(i == 0){
+          var p2 = {'x': node.corners[node.corners.length -1].x,
+            'y': node.corners[node.corners.length-1].y};
+          var q2 = {'x': node.corners[i].x, 'y': node.corners[i].y};
+        }
+        else{
+          var p2 = {'x': node.corners[i-1].x, 'y': node.corners[i-1].y};
+          var q2 = {'x': node.corners[i].x, 'y': node.corners[i].y};
+        }
+        if(doIntersect(p1, q1, p2, q2)){
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+
+  // Given three colinear points p, q, r, the function checks if
+  // point q lies on line segment 'pr'
+  var onSegment = function(p, q, r){
+    if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
+        q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y)) {
+      return true;
+    }
+    return false;
+  }
+
+  // To find orientation of ordered triplet (p, q, r).
+  // The function returns following values
+  // 0 --> p, q and r are colinear
+  // 1 --> Clockwise
+  // 2 --> Counterclockwise
+  var orientation = function(p, q, r){
+    // See 10th slides from following link for derivation of the formula
+    // http://www.dcs.gla.ac.uk/~pat/52233/slides/Geometry1x1.pdf
+    var val = (q.y - p.y) * (r.x - q.x) -
+  (q.x - p.x) * (r.y - q.y);
+
+    if (val == 0) return 0;  // colinear
+
+    return (val > 0)? 1: 2; // clock or counterclock wise
+  }
+
+  // The main function that returns true if line segment 'p1q1'
+  // and 'p2q2' intersect.
+  var doIntersect = function(p1, q1, p2, q2){
+    // Find the four orientations needed for general and
+    // special cases
+    var o1 = orientation(p1, q1, p2);
+    var o2 = orientation(p1, q1, q2);
+    var o3 = orientation(p2, q2, p1);
+    var o4 = orientation(p2, q2, q1);
+
+    // General case
+    if (o1 != o2 && o3 != o4)
+      return true;
+
+    // Special Cases
+    // p1, q1 and p2 are colinear and p2 lies on segment p1q1
+    if (o1 == 0 && onSegment(p1, p2, q1)) return true;
+
+    // p1, q1 and p2 are colinear and q2 lies on segment p1q1
+    if (o2 == 0 && onSegment(p1, q2, q1)) return true;
+
+    // p2, q2 and p1 are colinear and p1 lies on segment p2q2
+    if (o3 == 0 && onSegment(p2, p1, q2)) return true;
+
+    // p2, q2 and q1 are colinear and q1 lies on segment p2q2
+    if (o4 == 0 && onSegment(p2, q1, q2)) return true;
+
+    return false; // Doesn't fall in any of the above cases
   };
 
   this.distance_formula = function(x1, y1, x2, y2) {

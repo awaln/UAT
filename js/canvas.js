@@ -24,6 +24,9 @@
   dot_flag = false;
   x = 'black';
   y = 2;
+  var move_mode = false;
+  var held_node = null;
+  var grip = null;
   
   drawing = {
     nodes: {},
@@ -41,34 +44,84 @@
     w = canvas.width;
     h = canvas.height;
     canvas.addEventListener('mousemove', (function(e) {
-      findxy('move', e);
+      if(move_mode && grip != null){
+        move_node(e);
+      }
+      else {
+        findxy('move', e);
+      }
     }), false);
     canvas.addEventListener('mousedown', (function(e) {
-      findxy('down', e);
+      if(move_mode){
+        highlight(e);
+      }
+      else {
+        findxy('down', e);
+      }
     }), false);
     canvas.addEventListener('mouseup', (function(e) {
-      findxy('up', e);
+      if(move_mode){
+        drop_node(e, false);
+        unhighlight(e);
+      }
+      else {
+        findxy('up', e);
+      }
     }), false);
     canvas.addEventListener('mouseout', (function(e) {
-      findxy('out', e);
+      if(move_mode){
+        drop_node(e, true);
+        unhighlight(e);
+      }
+      else {
+        findxy('out', e);
+      }
     }), false);
     canvas.addEventListener('touchmove', (function(e) {
-      findxy('move', e.changedTouches[0]);
+      if(move_mode && grip != null){
+        move_node(e.changedTouches[0]);
+      }
+      else {
+        findxy('move', e.changedTouches[0]);
+      }
     }), false);
     canvas.addEventListener('touchstart', (function(e) {
-      findxy('down', e.changedTouches[0]);
+      if(move_mode){
+        highlight(e.changedTouches[0]);
+      }
+      else {
+        findxy('down', e.changedTouches[0]);
+      }
       e.preventDefault();
     }), false);
     canvas.addEventListener('touchend', (function(e) {
-      findxy('up', e.changedTouches[0]);
+      if(move_mode){
+        drop_node(e.changedTouches[0], false);
+        unhighlight(e.changedTouches[0]);
+      }
+      else {
+        findxy('up', e.changedTouches[0]);
+      }
       e.preventDefault();
     }), false);
     canvas.addEventListener('touchleave', (function(e) {
-      findxy('out', e.changedTouches[0]);
+      if(move_mode){
+        drop_node(e, true);
+        unhighlight(e.changedTouches[0]);
+      }
+      else {
+        findxy('out', e.changedTouches[0]);
+      }
       e.preventDefault();
     }), false);
     canvas.addEventListener('touchcancel', (function(e) {
-      findxy('out', e.changedTouches[0]);
+      if(move_mode){
+        drop_node(e, true);
+        unhighlight(e.changedTouches[0]);
+      }
+      else {
+        findxy('out', e.changedTouches[0]);
+      }
       e.preventDefault();
     }), false);
   };
@@ -126,6 +179,70 @@
     }
   };
 
+  var highlight = function(e){
+    // find out if the point lies within a node, highlight that node.
+    var actualX = e.clientX - canvas.offsetLeft;
+    var actualY = e.clientY - canvas.offsetTop;
+    for(var i = 0; i < Object.keys(drawing.nodes).length; i++){
+      if(point_within_node(drawing.nodes[i], actualX, actualY)){
+        draw_node(ctx, drawing.nodes[i], 'blue');
+        held_node = drawing.nodes[i];
+        grip = [actualX, actualY];
+        return;
+      }
+    }
+  }
+
+  var unhighlight = function(e){
+    // find out if the point lies within a node, highlight that node.
+    var actualX = e.clientX - canvas.offsetLeft;
+    var actualY = e.clientY - canvas.offsetTop;
+    for(var i = 0; i < Object.keys(drawing.nodes).length; i++){
+      if(point_within_node(drawing.nodes[i], actualX, actualY)){
+        draw_node(ctx, drawing.nodes[i], 'black');
+        held_node = null;
+        grip = null;
+        return;
+      }
+    }
+  }
+
+  var move_node = function(e){
+    var actualX = e.clientX - canvas.offsetLeft;
+    var actualY = e.clientY - canvas.offsetTop;
+    var deltaX = actualX - grip[0];
+    var deltaY = actualY - grip[1];
+    for(var i = 0; i < Object.keys(drawing.nodes).length; i++){
+      if(point_within_node(drawing.nodes[i], actualX, actualY)){
+        drawing.nodes[i].center_x += deltaX;
+        drawing.nodes[i].center_y += deltaY;
+        for(var corner = 0; corner < drawing.nodes[i].corners.length; corner++){
+          drawing.nodes[i].corners[corner].x += deltaX;
+          drawing.nodes[i].corners[corner].y += deltaY;
+        }
+        pretty_draw(ctx, canvas, drawing);
+        draw_node(ctx, drawing.nodes[i], 'blue');
+        grip = [actualX, actualY];
+        return;
+      }
+    }
+  }
+
+  var drop_node = function(e, abort){
+    var actualX = e.clientX - canvas.offsetLeft;
+    var actualY = e.clientY - canvas.offsetTop;
+    for(var i = 0; i < Object.keys(drawing.nodes).length; i++){
+      if(point_within_node(drawing.nodes[i], actualX, actualY)){
+        if(abort){
+          drawing.nodes[i] = held_node;
+        }
+        pretty_draw(ctx, canvas, drawing);
+        draw_node(ctx, drawing.nodes[i], 'blue');
+        return;
+      }
+    }
+  }
+
   this.recognize_all = function() {
     var i, j, ref;
     for (i = j = 0, ref = strokes_x.length; 0 <= ref ? j < ref : j > ref; i = 0
@@ -144,7 +261,7 @@
   CONFIDENCE_THRESHOLD = .81;
 
   ask_user = function() {
-    ask_user_nodes();
+    var nodes = ask_user_nodes();
   }
 
   ask_user_nodes = function() {
@@ -170,25 +287,26 @@
         if (drawing.nodes[node].type["circle"] >=
             drawing.nodes[node].type["polygon"]) {
           guess = "<p>I'm not sure what you've drawn here. My best guess is a \
-                  circle. Is that right? (" +
-                  drawing.nodes[node].type["circle"] + ", " +
-                  drawing.nodes[node].type["polygon"] + ")</p>";
+                  circle. Is that right?</p>";
           answers = "<button onclick='answer_nodes(0)'>yes</button><button \
                     onclick='answer_nodes(1)'>no</button>";
         } else {
           guess = "<p>I'm not sure what you've drawn here. My best guess is a \
-                  polygon. Is that right? (" +
-                  drawing.nodes[node].type["circle"] + ", " +
-                  drawing.nodes[node].type["polygon"] + ")</p>";
+                  polygon. Is that right?</p>";
           answers = "<button onclick='answer_nodes(1)'>yes</button><button \
                     onclick='answer_nodes(0)'>no</button>";
         }
         document.getElementById("askbox").innerHTML = guess + answers;
-        return;
+        return 1;
       }
     }
-    return document.getElementById("askbox").innerHTML = "";
+    document.getElementById("askbox").innerHTML = "";
+    return 0;
   };
+
+  ask_user_organize = function(){
+
+  }
 
   DRAWABLE_SHAPES = ["circle", "polygon"];
 
@@ -208,5 +326,16 @@
     pretty_draw(ctx, canvas, drawing);
     return ask_user();
   };
+
+  this.move_toggle = function() {
+    if(move_mode){
+      document.getElementById("move_toggle").innerHTML = "Move Mode";
+      move_mode = false;
+    }
+    else {
+      document.getElementById("move_toggle").innerHTML = "Draw Mode";
+      move_mode = true;
+    }
+  }
 
 }).call(this);
