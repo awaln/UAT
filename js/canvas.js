@@ -27,6 +27,7 @@
   var move_mode = false;
   var held_node = null;
   var grip = null;
+  var temp_drawing = {};
   
   drawing = {
     nodes: {},
@@ -255,13 +256,16 @@
     times = []
     drawing = relate(drawing);
     pretty_draw(ctx, canvas, drawing);
-    ask_user_nodes();
+    ask_user();
   };
 
   CONFIDENCE_THRESHOLD = .81;
 
   ask_user = function() {
     var nodes = ask_user_nodes();
+    if(nodes == 0) {
+      var organize = ask_user_organize();
+    }
   }
 
   ask_user_nodes = function() {
@@ -270,7 +274,6 @@
     for (j = 0, len = ref.length; j < len; j++) {
       node = ref[j];
       if (!drawing.nodes[node].known) {
-        console.log(drawing.nodes[node]);
         pretty_draw(ctx, canvas, drawing);
         x_point = drawing.nodes[node].center_x;
         y_point = drawing.nodes[node].center_y + drawing.nodes[node].radius;
@@ -305,7 +308,55 @@
   };
 
   ask_user_organize = function(){
+    var longest = longest_path(drawing);
+    console.log(longest);
+    console.log(drawing.nodes);
+    if(longest.length < 2){
+      document.getElementById("askbox").innerHTML = "";
+      return 0;
+    }
+    // if they will fit vertically, do so.
+    // say, buffer of 50 pixels so they don't hit each other
+    BUFFER = 5;
+    var height = 0;
+    for(i in longest){
+      height = height + BUFFER + drawing.nodes[parseInt(i)].radius*2;
+    }
+    // TODO: Canvas height hard-coded.
+    if(height > 400){
+      document.getElementById("askbox").innerHTML = "";
+      return 0;
+    }
+    // it'll fit.
+    temp_drawing = $.extend(true, {}, drawing);
+    // set all nodes in path to same x, different y. Note smaller y should
+    // be at the bottom.
+    for(i in longest){
+      height = height - drawing.nodes[parseInt(i)].radius - BUFFER;
+      var deltaX = 200 - drawing.nodes[i].center_x;
+      var deltaY = height - drawing.nodes[i].center_y;
+      drawing.nodes[i].center_x = 200;
+      drawing.nodes[i].center_y = height;
+      for(var corner = 0; corner < drawing.nodes[i].corners.length; corner++){
+        drawing.nodes[i].corners[corner].x += deltaX;
+        drawing.nodes[i].corners[corner].y += deltaY;
+      }
+      height = height - drawing.nodes[i].radius;
+    }
+    pretty_draw(ctx, canvas, drawing);
+    guess = "<p>I found a way to reorganize your graph. Keep changes?</p>";
+    answers = "<button onclick='answer_organize(1)'>yes</button><button \
+                    onclick='answer_organize(0)'>no</button>";
+    document.getElementById("askbox").innerHTML = guess + answers;
+  }
 
+  this.answer_organize = function(int){
+    if(int == 0){
+      drawing = temp_drawing;
+      pretty_draw(ctx, canvas, drawing);
+    }
+    temp_drawing = null;
+    document.getElementById("askbox").innerHTML = "";
   }
 
   DRAWABLE_SHAPES = ["circle", "polygon"];
@@ -318,7 +369,6 @@
       if (!drawing.nodes[node].known) {
         drawing.nodes[node].type[DRAWABLE_SHAPES[int]] = 1;
         drawing.nodes[node].known = true;
-        console.log(drawing.nodes[node]);
         pretty_draw(ctx, canvas, drawing);
         return ask_user();
       }

@@ -408,4 +408,68 @@
     return lr;
   };
 
+  this.longest_path = function(drawing){
+    // Takes in a drawing, returns the nodes that represent the longest path
+    // through the graph without repeat nodes.
+    // Returns path as a list, the first is the one with the higher
+    // center, the second with the lower center.
+    var adjacency = drawing.edges;
+    for(key in adjacency){
+      for(var i = 0; i < adjacency[key].length; i++){
+        var key2 = adjacency[key][i]
+        if(!(key2 in adjacency)){
+          adjacency[key2] = [];
+        }
+        if((adjacency[key2].indexOf(parseInt(key)) < 0 ) && (parseInt(key) != parseInt(key2))){
+          adjacency[key2].push(parseInt(key));
+        }
+      }
+    }
+    var queue = Object.keys(adjacency);
+    // Finding longest path(s) with no repeats, British Museum
+    // short-circuit if we've found a path with the # of nodes in the graph.
+    var num_nodes = queue.length;
+    var longest_path = [];
+    while(queue.length > 0){
+      var path = queue.shift();
+      console.log(path);
+      // short circuit
+      if(path.length == num_nodes){
+        var front = path[0];
+        var back = path[num_nodes - 1];
+        if(drawing.nodes[parseInt(front)].center_y < drawing.nodes[parseInt(back)].center_y){
+          return path;
+        }
+        else{
+          return path.reverse();
+        }
+      }
+      var next = adjacency[path[path.length - 1]];
+      var dead = true;
+      for(var i = 0; i < next.length; i++){
+        if(path.indexOf("" + next[i]) < 0){
+          var new_path = $.extend(true, [], path);
+          new_path.push("" + next[i]);
+          queue.push(new_path);
+          dead = false;
+        }
+      }
+      if(dead){
+        if(path.length > longest_path.length){
+          longest_path = path;
+        }
+      }
+    }
+    var front = longest_path[0];
+    var back = longest_path[num_nodes - 1];
+    console.log(front);
+    console.log(back);
+    if(drawing.nodes[front].center_y < drawing.nodes[back].center_y){
+      return longest_path;
+    }
+    else{
+      return longest_path.reverse();
+    }
+  }
+
 }).call(this);
