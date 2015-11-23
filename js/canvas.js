@@ -323,16 +323,16 @@
       height = height + BUFFER + drawing.nodes[parseInt(i)].radius*2;
     }
     // TODO: Canvas height hard-coded.
-    if(height > 400){
+    if(height > 390){
       document.getElementById("askbox").innerHTML = "";
       return 0;
     }
     // it'll fit.
     temp_drawing = $.extend(true, {}, drawing);
-    // set all nodes in path to same x, different y. Note smaller y should
-    // be at the bottom.
+    // set all nodes in path to same x, different y.
+    height = 10;
     for(i in longest){
-      height = height - drawing.nodes[parseInt(i)].radius - BUFFER;
+      height = height + drawing.nodes[parseInt(i)].radius + BUFFER;
       var deltaX = 200 - drawing.nodes[i].center_x;
       var deltaY = height - drawing.nodes[i].center_y;
       drawing.nodes[i].center_x = 200;
@@ -341,7 +341,7 @@
         drawing.nodes[i].corners[corner].x += deltaX;
         drawing.nodes[i].corners[corner].y += deltaY;
       }
-      height = height - drawing.nodes[i].radius;
+      height = height + drawing.nodes[i].radius;
     }
     pretty_draw(ctx, canvas, drawing);
     guess = "<p>I found a way to reorganize your graph. Keep changes?</p>";
