@@ -413,6 +413,8 @@
     // through the graph without repeat nodes.
     // Returns path as a list, the first is the one with the higher
     // center, the second with the lower center.
+
+    // fills out adjacency for undirected graph
     var adjacency = drawing.edges;
     for(key in adjacency){
       for(var i = 0; i < adjacency[key].length; i++){
@@ -432,7 +434,6 @@
     var longest_path = [];
     while(queue.length > 0){
       var path = queue.shift();
-      console.log(path);
       // short circuit
       if(path.length == num_nodes){
         var front = path[0];
@@ -461,15 +462,56 @@
       }
     }
     var front = longest_path[0];
-    var back = longest_path[num_nodes - 1];
-    console.log(front);
-    console.log(back);
+    var back = longest_path[longest_path.length - 1];
     if(drawing.nodes[front].center_y < drawing.nodes[back].center_y){
       return longest_path;
     }
     else{
       return longest_path.reverse();
     }
+  }
+
+  this.binary_tree = function(drawing){
+    // walks up from leaf nodes and tries to find the top node of a
+    // potential binary tree.
+    var leaves = find_leaf_nodes(drawing);
+  }
+
+  this.find_leaf_nodes = function(drawing){
+    // returns a list of nodes from the drawing that have one connected edge.
+
+    // if two nodes are both considered leaves, but are connected, one of them
+    // isn't a leaf. Pick the lower one.
+    console.log(drawing);
+    var maybe_leaves = [];
+    for(var i = 0; i < Object.keys(drawing.nodes).length; i++){
+      var node = drawing.nodes["" + i];
+      if(drawing.edges["" + i] != undefined && drawing.edges["" + i].length == 1){
+        maybe_leaves.push(node);
+      }
+    }
+
+    // eliminate adjacent leaves
+    leaves = []
+    for(var i = 0; i < maybe_leaves.length; i++){
+      var keep = true;
+      for(var j = 0; j < maybe_leaves.length; j++){
+        node_i = maybe_leaves[i].name;
+        node_j = maybe_leaves[j].name;
+        if(node_i != node_j && drawing.edges["" + node_i] != undefined && drawing.edges["" + node_i].indexOf(parseInt(node_j)) >= 0){
+          // if i is the lower one, consider it good
+          // if j is lower, evict i.
+          if(drawing.nodes["" + j].center_y > drawing.nodes["" + i].center_y){
+            keep = false;
+          }
+        }
+      }
+      if(keep){
+        leaves.push(maybe_leaves[i]);
+      }
+    }
+    console.log(maybe_leaves, leaves);
+    return leaves;
   }
 
 }).call(this);

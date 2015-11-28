@@ -256,15 +256,18 @@
     times = []
     drawing = relate(drawing);
     pretty_draw(ctx, canvas, drawing);
+    this.try_organizer = true;
     ask_user();
   };
 
   CONFIDENCE_THRESHOLD = .81;
-
   ask_user = function() {
     var nodes = ask_user_nodes();
-    if(nodes == 0) {
+    if(nodes == 0 && this.try_organizer) {
       var organize = ask_user_organize();
+    }
+    else if (nodes == 0) {
+      var binary = ask_user_binary_tree();
     }
   }
 
@@ -308,16 +311,15 @@
   };
 
   ask_user_organize = function(){
+    this.try_organizer = false;
     var longest = longest_path(drawing);
-    console.log(longest);
-    console.log(drawing.nodes);
     if(longest.length < 2){
       document.getElementById("askbox").innerHTML = "";
       return 0;
     }
     // if they will fit vertically, do so.
     // say, buffer of 50 pixels so they don't hit each other
-    BUFFER = 5;
+    BUFFER = 10;
     var height = 0;
     for(i in longest){
       height = height + BUFFER + drawing.nodes[parseInt(i)].radius*2;
@@ -348,6 +350,11 @@
     answers = "<button onclick='answer_organize(1)'>yes</button><button \
                     onclick='answer_organize(0)'>no</button>";
     document.getElementById("askbox").innerHTML = guess + answers;
+    return 1;
+  }
+
+  this.ask_user_binary_tree = function(){
+    var top = binary_tree(drawing);
   }
 
   this.answer_organize = function(int){
@@ -357,6 +364,7 @@
     }
     temp_drawing = null;
     document.getElementById("askbox").innerHTML = "";
+    return ask_user();
   }
 
   DRAWABLE_SHAPES = ["circle", "polygon"];
