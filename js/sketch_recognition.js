@@ -472,45 +472,99 @@
   }
 
   this.binary_tree = function(drawing){
-    // walks up from leaf nodes and tries to find the top node of a
-    // potential binary tree.
-    var leaves = find_leaf_nodes(drawing);
+    // Since walking up didn't work, just do BFS and see if it's a binary tree
+    // and return all the nodes that are part of the tree. Start from each
+    // node and return when we find a tree that uses all the nodes, or return
+    // none?
+
+    // fills out directed graph
+    var labels = Object.keys(drawing.edgelabels);
+    var adjacency = {};
+    for(var i = 0; i < labels.length; i++){
+      var label = labels[i];
+      var nodes = label.split(" ");
+      if(!(nodes[0] in adjacency)){
+        adjacency[nodes[0]] = [];
+      }
+      adjacency[nodes[0]].push(nodes[1]);
+    }
+
+    var agenda = find_leaf_nodes(drawing);
+    var visited = agenda.slice();
+    var updated = true;
+    console.log("LEAVES:");
+    console.log(agenda);
+    while(updated){
+      updated = false;
+      // we are looking for a node whose children are all in the agenda
+      // once a node has entered the agenda, it cannot be used as a parent.
+      for(var parent in adjacency){
+        console.log("Parent: " + parent);
+        console.log(agenda);
+        var broken = false;
+        // kill if has been in agenda, ever
+        if(visited.indexOf(parent) != -1){
+          console.log("Parent in visited, breaking.");
+          broken = true;
+          break;
+        }
+        var children = [];
+        for(var i = 0; i < adjacency[parent].length; i++){
+          var child = adjacency[parent][i];
+          if(agenda.indexOf(child) == -1 && agenda.indexOf(parseInt(child)) == -1){
+            console.log("Could not find child " + child + " in agenda, breaking.");
+            console.log(agenda);
+            broken = true;
+          }
+          else{
+            children.push(child);
+          }
+        }
+        // all children were in agenda if not broken.
+        if(!broken){
+          // remove all the children from the agenda
+          console.log("Removing children.");
+          for (var child in children) {
+            agenda.splice(agenda.indexOf(child), 1);
+          }
+          // add new parent to agenda
+          agenda.push(parent);
+          visited.push(parent);
+          updated = true;
+        }
+      }
+    }
+
+    // assuming this while loop successfully terminates, ever, the agenda
+    // will contain top-level nodes and the directed map will store which
+    // nodes are parents of which. Return these
+    return [agenda, adjacency];
   }
 
   this.find_leaf_nodes = function(drawing){
-    // returns a list of nodes from the drawing that have one connected edge.
+    // returns a list of nodes from the drawing that have no edges outgoing.
 
-    // if two nodes are both considered leaves, but are connected, one of them
-    // isn't a leaf. Pick the lower one.
-    console.log(drawing);
-    var maybe_leaves = [];
-    for(var i = 0; i < Object.keys(drawing.nodes).length; i++){
-      var node = drawing.nodes["" + i];
-      if(drawing.edges["" + i] != undefined && drawing.edges["" + i].length == 1){
-        maybe_leaves.push(node);
+    // fills out opposite-directed graph
+    var labels = Object.keys(drawing.edgelabels);
+    var adjacency = {};
+    for(var i = 0; i < labels.length; i++){
+      var label = labels[i];
+      var nodes = label.split(" ");
+      if(!(nodes[0] in adjacency)){
+        adjacency[parseInt(nodes[0])] = [];
       }
+      adjacency[parseInt(nodes[0])].push(nodes[1]);
     }
-
-    // eliminate adjacent leaves
+    console.log(adjacency);
     leaves = []
-    for(var i = 0; i < maybe_leaves.length; i++){
-      var keep = true;
-      for(var j = 0; j < maybe_leaves.length; j++){
-        node_i = maybe_leaves[i].name;
-        node_j = maybe_leaves[j].name;
-        if(node_i != node_j && drawing.edges["" + node_i] != undefined && drawing.edges["" + node_i].indexOf(parseInt(node_j)) >= 0){
-          // if i is the lower one, consider it good
-          // if j is lower, evict i.
-          if(drawing.nodes["" + j].center_y > drawing.nodes["" + i].center_y){
-            keep = false;
-          }
-        }
-      }
-      if(keep){
-        leaves.push(maybe_leaves[i]);
+    for(var i = 0; i < Object.keys(drawing.nodes).length; i++){
+      var node = drawing.nodes[Object.keys(drawing.nodes)[i]].name;
+      console.log(node);
+      console.log(typeof node);
+      if(!(node in adjacency)){
+        leaves.push(node);
       }
     }
-    console.log(maybe_leaves, leaves);
     return leaves;
   }
 

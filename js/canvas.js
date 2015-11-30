@@ -257,17 +257,18 @@
     drawing = relate(drawing);
     pretty_draw(ctx, canvas, drawing);
     this.try_organizer = true;
+    this.try_binary_tree = true;
     ask_user();
   };
 
   CONFIDENCE_THRESHOLD = .81;
   ask_user = function() {
     var nodes = ask_user_nodes();
-    if(nodes == 0 && this.try_organizer) {
-      var organize = ask_user_organize();
-    }
-    else if (nodes == 0) {
+    if(nodes == 0 && this.try_binary_tree) {
       var binary = ask_user_binary_tree();
+    }
+    else if (nodes == 0 && this.try_organizer) {
+      var organize = ask_user_organize();
     }
   }
 
@@ -319,7 +320,7 @@
     }
     // if they will fit vertically, do so.
     // say, buffer of 50 pixels so they don't hit each other
-    BUFFER = 10;
+    BUFFER = 20;
     var height = 0;
     for(i in longest){
       height = height + BUFFER + drawing.nodes[parseInt(i)].radius*2;
@@ -354,7 +355,67 @@
   }
 
   this.ask_user_binary_tree = function(){
-    var top = binary_tree(drawing);
+    this.try_binary_tree = false;
+    var stuff = binary_tree(drawing);
+    var tops = stuff[0];
+    var adjacency = stuff[1];
+    console.log("BINARY TREE:");
+    console.log(tops, adjacency);
+    // we now have potential tops of binary trees. Pick the first one for now.
+    var top = tops[0];
+    temp_drawing = $.extend(true, {}, drawing);
+    BUFFER = 20;
+    depth = 0;
+    var level = [top];
+    while(level.length > 0){
+      // take all the nodes in the level, generate next level IN ORDER.
+      // also find the largest node in the level and set depth appropriately.
+      var next_level = [];
+      var max_diameter = 0;
+      for(var i = 0; i < level.length; i++){
+        var item = level[i];
+        max_diameter = Math.max(max_diameter, drawing.nodes[item].radius*2);
+        if(adjacency[item] != undefined) {
+          for (var j = 0; j < adjacency[item].length; j++) {
+            next_level.push(adjacency[item][j]);
+          }
+        }
+      }
+      console.log("LEVEL:");
+      console.log(level);
+      // set up level
+      depth = depth + BUFFER + max_diameter;
+      spacing = (400-max_diameter)/(level.length);
+      left = max_diameter/2;
+      // center top node
+      if(level[0] === top){
+        left = 200;
+      }
+      for(var i = 0; i < level.length; i++){
+        console.log("PLACING " + level[i]);
+        console.log(depth, spacing, left);
+        var item = level[i];
+        var deltaX = left - drawing.nodes[item].center_x;
+        var deltaY = depth - drawing.nodes[item].radius - drawing.nodes[item].center_y;
+        drawing.nodes[item].center_x = left;
+        drawing.nodes[item].center_y = depth - drawing.nodes[item].radius;
+        for(var corner = 0; corner < drawing.nodes[item].corners.length; corner++){
+          drawing.nodes[item].corners[corner].x += deltaX;
+          drawing.nodes[item].corners[corner].y += deltaY;
+        }
+        left = left + spacing;
+      }
+      // next level
+      level = next_level;
+    }
+    console.log("CLEANED: ");
+    console.log(drawing);
+    pretty_draw(ctx, canvas, drawing);
+    guess = "<p>I found a way to reorganize your graph. Keep changes?</p>";
+    answers = "<button onclick='answer_organize(1)'>yes</button><button \
+                    onclick='answer_organize(0)'>no</button>";
+    document.getElementById("askbox").innerHTML = guess + answers;
+    return 1;
   }
 
   this.answer_organize = function(int){
